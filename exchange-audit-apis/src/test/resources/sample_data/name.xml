@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<DropShipUpdate MessageType="SHIPMENT_UPDATE" OrderNo="3215" DIYShippingID="122143434" ShippedDate="2021-06-30" CarrierService="UPS" TrackingNumber="1Z11333222112123123123" DeliveredDateTime="" OrderStatus="" MessageDateTime="2021-06-30 13:23:55" ShippingCost="" JobNumber="XXXX">
+  <SerialNumbers>
+    <SerialNumber DIYSku="AA22211-01" DeviceName="Google Nest Hub 1" DeviceSerialNumber="0C231J3DA0ASEC" DeviceCost="0"/>
+    <SerialNumber DIYSku="AA22211-02" DeviceName="Google Nest Mini 1" DeviceSerialNumber="02041HFFE3PF87" DeviceCost="0"/>
+    <SerialNumber DIYSku="AA22211-02" DeviceName="Google Nest Mini 2" DeviceSerialNumber="02041HFFE3PF88" DeviceCost="0"/>
+    <SerialNumber DIYSku="AA22211-02" DeviceName="Google Nest Mini 3" DeviceSerialNumber="02041HFFE3PF89" DeviceCost="0"/>
+  </SerialNumbers>
+</DropShipUpdate>

@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="test" format="json">
+      <types:shape format="weave" example="examples/design-info.json"><![CDATA[%dw 2.0
+
+type test = {|
+  sampleData: {|
+    "9cd5b021-1308-4658-bc13-57fd5cc0a6aa": {| payload: String |}, 
+    "883a22c7-4926-412c-bcc0-841379793ffb": {| payload: String |}
+  |}
+|} {"example": "{\\\"sampleData\\\":{\\\"9cd5b021-1308-4658-bc13-57fd5cc0a6aa\\\":{\\\"payload\\\":\\\"sample_data\\/java.dwl\\\"},\\\"883a22c7-4926-412c-bcc0-841379793ffb\\\":{\\\"payload\\\":\\\"sample_data\\/java_1.dwl\\\"}}}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="hello" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="object" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="csvfile" format="csv">
+      <types:shape format="weave"><![CDATA[%dw 2.0
+
+type csvfile = Array<{|  column_5: String,   column_6: String,   column_7: String|}> {"isQuotedString": "false",
+"header": "false",
+"headerLineNumber": "0"}
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="false"/>
+        <types:property name="isQuotedString" value="false"/>
+      </types:properties>
+    </types:type>
+    <types:type name="applicaition" format="json">
+      <types:shape format="weave" example="examples/json_7.json"><![CDATA[%dw 2.0
+
+type applicaition = Array<{|  application: String,   details: Array<{|    endpoint: String,     method: Array<Array<String>>
+  |}>
+|}> {"example": "[{\\\"application\\\":\\\"creditcard-exp-api\\\",\\\"details\\\":[{\\\"endpoint\\\":\\\"\\/uid\\/{uId}\\\",\\\"method\\\":[[\\\"get\\\"]]},{\\\"endpoint\\\":\\\"\\/uid\\/hpf\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/uid\\/hpp\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/profile\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/profile\\/{profileId}\\\",\\\"method\\\":[[\\\"get\\\"],[\\\"put\\\"],[\\\"delete\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/payment\\/auth\\\",\\\"method\\\":[[\\\"post\\\"]]}]},{\\\"application\\\":\\\"jst-scheduling-sys-api\\\",\\\"details\\\":[{\\\"endpoint\\\":\\\"\\/jobs\\/timebands\\\",\\\"method\\\":[[\\\"get\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\\",\\\"method\\\":[[\\\"delete\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\\",\\\"method\\\":[[\\\"delete\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\/offers\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\/schedule\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\/schedule\\/earliest\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\/reschedule\\\",\\\"method\\\":[[\\\"put\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/{jobId}\\/appointment\\/reschedule\\/earliest\\\",\\\"method\\\":[[\\\"put\\\"]]},{\\\"endpoint\\\":\\\"\\/jobs\\/technician\\/{employeeId}\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/hr\\/technician\\/{activeDirectoryId}\\/image\\\",\\\"method\\\":[[\\\"get\\\"]]},{\\\"endpoint\\\":\\\"\\/smsCallback\\\",\\\"method\\\":[[\\\"post\\\"]]}]}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="jsoncsv" format="json">
+      <types:shape format="weave" example="examples/json.json"><![CDATA[%dw 2.0
+
+type jsoncsv = Array<{|  application: String,   endpoint: String,   Method: String|}> {"example": "[{\\\"application\\\":\\\"app1\\\",\\\"endpoint\\\":\\\"app1\\\",\\\"Method\\\":\\\"app1\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="listjson" format="json">
+      <types:shape format="weave" example="examples/list_json.json"><![CDATA[%dw 2.0
+
+type listjson = Array<{|  application: String,   details: Array<{|    endpoint: String,     method: Array<Array<String>>
+  |}>
+|}> {"example": "[{\\\"application\\\":\\\"creditcard-exp-api\\\",\\\"details\\\":[{\\\"endpoint\\\":\\\"\\/uid\\/{uId}\\\",\\\"method\\\":[[\\\"get\\\"]]},{\\\"endpoint\\\":\\\"\\/uid\\/hpf\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/uid\\/hpp\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/profile\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/profile\\/{profileId}\\\",\\\"method\\\":[[\\\"get\\\"],[\\\"put\\\"],[\\\"delete\\\"]]},{\\\"endpoint\\\":\\\"\\/cc\\/payment\\/auth\\\",\\\"method\\\":[[\\\"post\\\"]]}]},{\\\"application\\\":\\\"mmb-search-custsite-sys-api\\\",\\\"details\\\":[{\\\"endpoint\\\":\\\"\\/sites\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/customers\\\",\\\"method\\\":[[\\\"post\\\"]]},{\\\"endpoint\\\":\\\"\\/customers\\/search-any\\\",\\\"method\\\":[[\\\"post\\\"]]}]}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#ab374d6e-85c6-41ff-afff-e2d0e77a2942">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="test"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="hello"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#16627646-58d5-497d-b9aa-4cbcacb5ace4"/>
+  <types:enrichment select="#fe367954-9b10-48b8-ac39-6d79c47f60ce"/>
+  <types:enrichment select="#6dbd9f72-b298-4c90-a457-4a5b4d848ab6">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="listjson"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#978698c3-a2d7-4ef9-9c0e-b3eaa4542e83"/>
+</types:mule>

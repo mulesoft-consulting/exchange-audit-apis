@@ -1,0 +1,38 @@
+app:
+  name: "exchange-audit-apis"
+  version: "1.0"
+  asset.version: "1.0.0"
+
+anypoint:
+  platform:
+    organizationId: 
+    protocol: "HTTPS"
+    #Change to anypoint.mulesoft.com  if using the US Control Plane 
+    #Change to eu1.anypoint.mulesoft.com  if using the EU Control Plane 
+    #Change to gov.anypoint.mulesoft.com  if using Gov Cloud
+    #Change to your_domain.com if using PCE
+    host: "anypoint.mulesoft.com" 
+    port: "443"
+    timeout: "60000"
+    path: "/accounts/login"
+    basePath: ""
+  exchange:
+    artifact:
+      type: "rest-api"
+      limit: "2"
+    api:
+      searchPath: "/exchange/api/v2/assets/search"
+      assetPath: "/exchange/api/v2/assets/{organizationId}/{assetId}/{asset.version}/asset"
+      instancesPath: "/exchange/api/v2/assets/{organizationId}/{assetId}/versionGroups/v1/instances"
+      modelPath: "exchange/api/v2/assets/{organizationId}/{assetId}/{app.version}/api/model"
+      
+      
+      
+      
+object-store:
+  token:
+    ttl: "5"
+    interval: "1"
+  watermark:
+    ttl: "4320" # 72 Hours = 60 * 72
+    interval: "5" # 5 Minutes

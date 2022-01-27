@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="exchange-audit-apis"
+		doc:id="3980983e-850e-4146-89f3-696fa05f58f3">
+		<http:listener doc:name="Listener"
+			doc:id="7d0c8fdb-c835-440c-b33e-89e5eec3287c"
+			config-ref="HTTP_Listener_config" path="/endpoints/report" />
+		<set-variable
+			value="#[{&#10;	endpoints: 0,&#10;	methods: 0&#10;}]"
+			doc:name="Initializing Variables"
+			doc:id="e7783c61-255a-40b6-a66c-6031b939d588" variableName="total" />
+		<flow-ref doc:name="Anypoint Login"
+			doc:id="dac0feb1-c7c1-4bfa-882b-e3a6ad1aac9d"
+			name="anypoint-platform-get-token-cached" />
+		<flow-ref doc:name="get-exchange-api-list"
+			doc:id="a4baeb17-731e-4138-bfbf-3ded379c8381"
+			name="get-exchange-api-list" />
+		<flow-ref doc:name="get-metadata"
+			doc:id="7230f9fb-1fe4-41ce-bd29-b5fc6eedb7c1" name="get-metadata" />
+		<flow-ref doc:name="get-endpoint-details"
+			doc:id="7563adeb-0411-466f-8734-30103b26f513"
+			name="get-endpoint-details" />
+
+		<ee:transform doc:name="Consolidate Data"
+			doc:id="0ad461f6-640a-4d5d-ba62-9b877be902cb">
+			<ee:message>
+				<ee:set-payload
+					resource="dw/exchange-audit-apis-join.dwl" />
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable
+					resource="dw/exchange-audit-apis-total.dwl" variableName="total" />
+			</ee:variables>
+		</ee:transform>
+		<file:write doc:name="Write file"
+			doc:id="b5679752-8e96-4743-a39f-a7f155496583"
+			config-ref="File_Config"
+			path='#["report"++  now() as String {format: "y-MM-dd"} ++ ".csv"]'
+			mode="APPEND">
+			<file:content><![CDATA[#[%dw 2.0
+output application/csv separator=",", quoteValues=true
+import dw::utility
+---
+payload map (data) -> 
+{
+	"Domain": data.r.domain ,
+	"AssetId": data.l.assetId default "",
+    "Endpoint": data.l.endpoint default "",
+    "Description": data.r.description  default "",
+    "Method": data.l.method default "",
+	"AssetId": data.r.assetId default "",
+    "Label": data.r.label default "",
+    "ApiLayer": data.r.apiLayer default "",
+    "ExchangeLink": ("https://anypoint.mulesoft.com/exchange/" ++ p("anypoint.platform.organizationId") ++ "/" ++ data.r.assetId ) default null ,
+	"SANDBOX": data.r.SANBOX default "",
+    "PROD": data.r.PROD default ""
+}]]]></file:content>
+		</file:write>
+		<set-payload
+			value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.total]"
+			doc:name="Set Payload" doc:id="4436c0d8-5cd9-4434-90cb-8ea7d2238dd8" />
+	</flow>
+</mule>

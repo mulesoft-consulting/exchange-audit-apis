@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule
+	xmlns:compression="http://www.mulesoft.org/schema/mule/compression"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+	http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+	http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+	http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+	http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/compression http://www.mulesoft.org/schema/mule/compression/current/mule-compression.xsd">
+	<flow name="get-exchange-api-list"
+		doc:id="3467ece9-e66f-451a-9eb0-ce4a8d975adb">
+		<http:request method="GET"
+			doc:name="Get Exchange API List"
+			doc:id="f4694630-7d54-47dd-9dda-2a718ef2e35f"
+			config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+			path="${anypoint.exchange.api.searchPath}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.authorization
+}]]]></http:headers>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"limit" : p("anypoint.exchange.artifact.limit"),
+	"types" : p("anypoint.exchange.artifact.type"),
+	"organizationId" : p("anypoint.platform.organizationId")
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="606fc6c6-5e63-497c-828c-09e31247a4b0"
+			message="API list retrieved" />
+	</flow>
+	<flow name="anypoint-platform-get-token-cached"
+		doc:id="ba7d31be-c35a-413a-9599-7947668627b7">
+		<ee:cache doc:name="Cache"
+			doc:id="106e8bc1-a6bf-4bd2-8096-b5abbe08a8d9"
+			cachingStrategy-ref="caching-strategy">
+			<flow-ref doc:name="get-anypoint-platform-token"
+				doc:id="3742692d-5ba5-494a-acce-b538f302592b"
+				name="anypoint-platform-get-token" />
+		</ee:cache>
+	</flow>
+	<flow name="anypoint-platform-get-token">
+		<http:request
+			config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+			path="${anypoint.platform.path}" method="POST"
+			doc:name="Request token to Anypoint Platform"
+			doc:id="f0884014-02dc-441c-89c8-c4d723e400c1">
+			<http:body><![CDATA[#[%dw 2.0
+output application/json  
+---
+{
+  username: p("secure::anypoint.login.username"),
+  password: p("secure::anypoint.login.password")
+}]]]></http:body>
+			<http:headers><![CDATA[#[{'Content-Type' : 'application/json'}]]]>
+			</http:headers>
+		</http:request>
+		<ee:transform doc:name="Set authorization token"
+			doc:id="d7774af5-69ba-4403-925c-f8f883454c8a">
+			<ee:variables>
+				<ee:set-variable resource="dw/get-token.dwl" variableName="authorization" />
+			</ee:variables>
+		</ee:transform>
+		<logger message="Authentication token retrieved" level="INFO"
+			doc:name="Logger" doc:id="84f444ff-69c4-4ec0-acb6-b85b0eb53682" />
+	</flow>
+	<sub-flow name="get-business-groups"
+		doc:id="a6fd3c4b-6843-420d-97b1-ddb92e68758a">
+		<logger level="INFO" doc:name="Logger"
+			doc:id="58d98012-7a35-4da3-b759-a544b693673e"
+			message="Get Business Groups - Get Hierarchy]" />
+		<http:request method="GET"
+			doc:name="Core Services - Get Hierarchy"
+			doc:id="24e6774a-5806-45e5-81d8-19224e5e9cd5"
+			config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+			path="/accounts/api/organizations/{organizationId}/hierarchy">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.authorization
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	organizationId : p('secure::anypoint.platform.organizationId')
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Get Business Groups"
+			doc:id="74d0e61e-d62a-4879-b8a9-ed514aaf8fc2">
+			<ee:message>
+				<ee:set-payload
+					resource="/dw/get-business-groups.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="305010e5-05e7-436f-91b0-d7b5f0d478b9"
+			message="Business Groups found: #[(payload map $.name) joinBy ',']" />
+	</sub-flow>
+
+	<flow name="get-metadata"
+		doc:id="702d9f3c-086d-4772-9cd8-07b06dabdf51">
+		<parallel-foreach doc:name="Parallel For Each"
+			doc:id="12033e6e-5565-4866-ac5d-9c2e6aef4104" collection="#[payload]"
+			target="metadata" maxConcurrency="5">
+			<http:request method="GET"
+				doc:name="get-metadata-per-api"
+				doc:id="7625ed25-aa1b-42eb-9c1f-6bfc6a97b1a7"
+				config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+				path="${anypoint.exchange.api.assetPath}" target="asset">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.authorization
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organizationId": payload.organizationId,
+	"assetId": payload."assetId",
+	"asset.version": payload.version
+}]]]></http:uri-params>
+			</http:request>
+			<!-- <ee:transform doc:name="Transform Message" doc:id="4935078a-9f08-44c7-9243-979c908ce54a" 
+				> -->
+			<!-- <ee:message > -->
+			<!-- </ee:message> -->
+			<!-- <ee:variables > -->
+			<!-- <ee:set-variable variableName="asset" ><![CDATA[%dw 2.0 -->
+			<!-- import * from dw::Runtime -->
+			<!-- output application/json -->
+			<!-- -&#45;&#45; -->
+			<!-- wait(payload, 150)]]></ee:set-variable> -->
+			<!-- </ee:variables> -->
+			<!-- </ee:transform> -->
+			<http:request method="GET" doc:name="get-instances"
+				doc:id="fadb6263-7470-4cf5-b88c-7de3a4ed5aaa"
+				config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+				path="${anypoint.exchange.api.instancesPath}" target="appInstances">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.authorization
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organizationId": payload.organizationId,
+	"assetId": vars.asset."assetId"
+}]]]></http:uri-params>
+			</http:request>
+			<ee:transform doc:name="Get Metadata Details"
+				doc:id="b0d6db44-099a-4c5c-926a-ccb5a8066238">
+				<ee:message>
+					<ee:set-payload resource="dw/get-metadata-details.dwl" />
+				</ee:message>
+			</ee:transform>
+		</parallel-foreach>
+		<set-variable
+			value="#[%dw 2.0
+&#10;output application/json
+&#10;---
+&#10;flatten (vars.metadata.payload)]"
+			doc:name="Set Variable" doc:id="f2aac654-9fbe-48df-b24c-566db6baba27"
+			variableName="metadata" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="ee5f1e12-ad1c-4675-b0f1-f1d5e08b61f0"
+			message="Metadata retrieved" />
+	</flow>
+	<flow name="get-endpoint-details"
+		doc:id="91cd486b-b431-41a0-840e-4b80a294ecb2">
+		<parallel-foreach doc:name="Parallel For Each"
+			doc:id="36385245-6d81-4491-845a-34aa78955e35" collection="#[payload]"
+			maxConcurrency="5">
+			<http:request method="GET"
+				doc:name="get-endpoint-model-details"
+				doc:id="4249133f-7ed5-48a2-ba97-7b39467814cd"
+				config-ref="HTTP_Anypoint_Platform_Request_Configuration"
+				path="${anypoint.exchange.api.modelPath}">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : vars.authorization
+}]]]></http:headers>
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"organizationId": payload.organizationId,
+	"assetId": payload."assetId",
+	"app.version": payload.version
+}]]]></http:uri-params>
+			</http:request>
+			<compression:decompress doc:name="Decompress"
+				doc:id="b2d4dfaf-96ab-4489-927f-938c672f18e5"
+				outputMimeType="application/json">
+				<compression:decompressor>
+					<compression:gzip-decompressor />
+				</compression:decompressor>
+			</compression:decompress>
+			<flow-ref doc:name="parse-endpoint-details"
+				doc:id="79e88fb9-3fc2-4d1e-a9d2-8fd958248a59"
+				name="parse-endpoint-details" />
+		</parallel-foreach>
+		<set-payload
+			value="#[%dw 2.0
+output application/json
+---
+flatten (payload.payload)]"
+			doc:name="Set Payload" doc:id="9c33465e-9067-4da0-866d-d2cd3814e111" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="0eabd91a-7ed7-46be-afc7-859e94913af3"
+			message="Endpoints details retrieved" />
+	</flow>
+	<flow name="parse-endpoint-details"
+		doc:id="be842aac-c556-42d7-9222-9caed056f1f8">
+		<ee:transform doc:name="Extract DL-JSON Model"
+			doc:id="d68641d7-3797-4176-a61e-e83f7e0c53f0">
+			<ee:message>
+				<ee:set-payload resource="dw/parse-endpoint-details-extract.dwl" />
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Endpoint Methods Mapping"
+			doc:id="4852877c-da8d-431f-962a-4a1a7e530001">
+			<ee:message>
+				<ee:set-payload resource="dw/parse-endpoint-details-endpoint-details.dwl" />
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Parse Endpoint Details"
+			doc:id="4c5404e8-771c-4e1d-a9fa-2eec664d3a2a">
+			<ee:message>
+				<ee:set-payload resource="dw/parse-endpoint-details-mapping.dwl" />
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
